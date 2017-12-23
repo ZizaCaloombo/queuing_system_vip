@@ -4,12 +4,13 @@ import StreamExecutor as SExec
 
 lam = 1
 print(1/lam)
+print('-')
 arr = []
 # print(np.random.rand())
 query_num = 10000
-for _ in range(query_num):
-    arr.append(1/lam * np.log(1/np.random.rand()))
-print(np.mean(arr))
+# for _ in range(query_num):
+#     arr.append(1/lam * np.log(1/np.random.rand()))
+# print(np.mean(arr))
 
 stream_num = 1
 p = 0.5

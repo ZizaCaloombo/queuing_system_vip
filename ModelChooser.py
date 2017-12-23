@@ -33,43 +33,57 @@ stream_num = 2
 
 
 # Avg_time
-avg_times = [10, 10]  # Среднее время для каждой категории заявок
+avg_times = [0.5, 0.5]  # Среднее время для каждой категории заявок
 
 # Lambda
-lambdas = [0.2, 0.2]
+lambdas = [1, 2]
 print('in times are ' + str(1/lambdas[0]) + ' and ' + str(1/lambdas[1]))
 
-mu = 1
+mu = 5
 t_proc = 1/mu  # Request processing time
 print('Начальные значения mu = ' + str(mu) + " (t_proc = " + str(t_proc) + ")")
 
 query_num = 1000000
 
 # p_val = np.concatenate([np.arange(0.1, 0.4, 0.1), np.arange(0.4, 0.61, 0.001), np.arange(0.7, 1, 0.1)])
-p_val = np.arange(0.1, 1.0, 0.1)    # Распределение вероятностей для соблюдения среднего времени выполнения заявок
+p_val = np.arange(0, 1.1, 0.1)    # Распределение вероятностей для соблюдения среднего времени выполнения заявок
 # p_val = np.array([0, 0.3, 0.5, 0.8, 1])    # Распределение вероятностей для соблюдения среднего времени выполнения заявок
+# p_val = np.arange(0.2,0.9,0.1)
+# p_val = np.array([0, 1])
 
 # todo Обернуть в класс с параметрами. Сокрыть лишнее, упростить доступ.
+
+test_num = 1
 rez_time = []
 srv_mu = []
 avg_est = np.zeros([2, len(p_val)])
 while True:
-    rand_arr = np.random.rand(query_num)
+    rand_arr = []
+    for i in range(test_num):
+        rand_arr.append(np.random.rand(query_num))
+
     avg_est = np.zeros([2, len(p_val)])
     for val in range(len(p_val)):
         p = p_val[val]
         # SE( streams_num, lambdas, init_serv_time, query_num, in_times = []  )
-        se = SExec.StreamExecuter(stream_num, lambdas, t_proc, query_num)
-        rez = se.run_execution(p, copy.deepcopy(rand_arr))
-        for i in range(stream_num):
-            avg_est[i, val] = rez[i]
+        for k in range(test_num):
+            se = SExec.StreamExecuter(stream_num, lambdas, t_proc, query_num)
+            rez = se.run_execution(p, copy.deepcopy(rand_arr[k]))
+            for i in range(stream_num):
+                avg_est[i, val] += rez[i]
+        print('p=' + str(p_val[val])+' successfully processed')
+    avg_est /= test_num
     rez_time.append(avg_est)
     srv_mu.append(1 / t_proc)
     algo_finish = False
+
+    opt_val = 0
     for i in range(len(p_val)):
         if avg_est[0, i] < avg_times[0] and avg_est[1, i] < avg_times[1]:
-            print('avg')
+            opt_val = i
+            print('avg_rez')
             print(avg_est[:, i])
+            print('p='+str(p_val[i]))
             algo_finish = True
             break
     if algo_finish:
@@ -85,12 +99,12 @@ while True:
         t_proc /= 2
     else:
         t_proc -= 1
-    if t_proc < 1e-1:
+    if t_proc < 1e-5:
         break
 print_results(avg_times, rez_time, srv_mu)
 print('rez')
-print(rez)
-print(1/(mu-sum(lambdas)))
+print(np.mean(avg_est[:, opt_val]))
+print(1/(srv_mu[-1]-sum(lambdas)))
 
 
 # avg_est = np.zeros(2, len(p_val)).fill(max(avg_times)+1)

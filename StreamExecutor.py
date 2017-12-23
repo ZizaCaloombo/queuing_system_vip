@@ -21,28 +21,28 @@ def create_exec_order(rand_arr, p):
 
 
 class StreamExecuter:
-    def __init__(self, streams_num, lambdas, init_serv_time, query_num, in_times=[]):
+    def __init__(self, streams_num, lambdas, init_serv_time, query_num, in_times=[], serv_times=[]):
         if streams_num == len(lambdas):
             self.streams = streams_num
             self.t_proc = init_serv_time  # Время обработки заявки
             self.sm = [0 for _ in range(streams_num)]  # Лист с экземплярами моделируемых потоков.
             self.query_num = query_num
-            self.served_num = [0, 0]  # Индекс заявок
+            self.served_num = [0 for _ in range(self.streams)]  # Индекс заявок
             self.min_num_queries = 1000  # Минимально необходимое число заявок для обработки
             self.lambdas = lambdas
-            service_times = np.random.exponential(self.t_proc, self.query_num).tolist()
+            self.service_times = np.random.exponential(self.t_proc, self.query_num).tolist()
             for i in range(streams_num):
                 self.sm[i] = SMod.StreamModeller(np.cumsum(np.random.exponential(1 / self.lambdas[i],
                                                                                  self.query_num)).tolist()
                                                  if len(in_times) == 0 else in_times[i],
-                                                 service_times)
+                                                 self.service_times if len(serv_times) == 0 else serv_times[i])
         else:
             raise ValueError("Wrong size of the arrays")
 
     def run_execution(self, p, rand_arr, ex_order=[]):
 
         last_served_time = 0  # Время обработки последней заявки
-        self.served_num = [0, 0]  # Индекс заявок
+        # self.served_num = [0, 0]  # Индекс заявок
         # rand_arr = np.random.rand(2*self.query_num)
 
         exec_order = create_exec_order(rand_arr, p) if len(ex_order) == 0 else ex_order
@@ -51,19 +51,24 @@ class StreamExecuter:
         # print(exec_order)
         # while sum(self.served_num) < self.query_num:  # Пока не обработано нужное количество заявок
         by_order = 0
-        while min(self.served_num) <= self.min_num_queries:
+        while min(self.served_num) < self.min_num_queries:
             # Вот тут менять при количестве потоков > 2
             order_val = exec_order[by_order] - 1
             not_order_val = (1 + order_val) % 2
             # Если ОУ не занято и заявка не по порядку пришла раньше порядковой - запуск непорядковой в обработку.
-            if last_served_time < self.sm[order_val].income_times[0] and \
-                    self.sm[order_val].income_times[0] > self.sm[not_order_val].income_times[0] and \
-                    self.streams > 1:
-                self.served_num[exec_order[not_order_val] - 1], last_served_time = \
+            if self.streams > 1 and \
+                    last_served_time < self.sm[order_val].income_times[0] and \
+                    self.sm[not_order_val].income_times[0] < self.sm[order_val].income_times[0]:
+
+                self.served_num[not_order_val], last_served_time = \
                     self.sm[not_order_val].serve_request(last_served_time)
             else:
                 self.served_num[order_val], last_served_time = \
                     self.sm[order_val].serve_request(last_served_time)
+                by_order += 1
+            # print(self.served_num)
+        print(self.served_num)
+
 
         # for i in range(len(exec_order)):  # Для каждой заявки в списке для обработки
         #     self.served_num[exec_order[i] - 1], last_served_time = \

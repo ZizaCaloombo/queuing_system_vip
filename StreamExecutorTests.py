@@ -26,9 +26,12 @@ class SETests(unittest.TestCase):
         in_times = [[1, 2, 4, 9, 10],
                     [3, 4, 5, 6, 9]]
         query_num = len(in_times[0])*len(in_times)
-        # streams_num, lambdas, init_serv_time, query_num, in_times = []
-        se = SExec.StreamExecuter(stream_num, lambdas, init_t_proc, query_num, copy.deepcopy(in_times))
 
+        serv_times = [[init_t_proc for _ in range(query_num)], [init_t_proc for _ in range(query_num)]]
+        # streams_num, lambdas, init_serv_time, query_num, in_times = []
+        se = SExec.StreamExecuter(stream_num, lambdas, init_t_proc, query_num, copy.deepcopy(in_times),
+                                  copy.deepcopy(serv_times))
+        se.min_num_queries = 5
         exec_order = [1, 2, 1, 1, 1, 2, 2, 1, 2, 2]
         p = 0.5
 
@@ -36,7 +39,9 @@ class SETests(unittest.TestCase):
         self.assertEqual([[2, 5, 5, 2, 7], [2, 9, 10, 13, 12]], se.get_full_result())
         self.assertEqual([4.2, 9.2], se.get_average_result())
 
-        se = SExec.StreamExecuter(stream_num, lambdas, init_t_proc, query_num, copy.deepcopy(in_times))
+        se = SExec.StreamExecuter(stream_num, lambdas, init_t_proc, query_num, copy.deepcopy(in_times),
+                                  copy.deepcopy(serv_times))
+        se.min_num_queries = 5
         self.assertEqual([4.2, 9.2], se.run_execution(p, [0.3, 0.7, 0.3, 0.3, 0.3, 0.7, 0.7, 0.3, 0.7, 0.7]))
 
 
