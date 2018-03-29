@@ -15,9 +15,14 @@ class StreamModeller:
         self.in_sys = []
         self.service_times = service_times
 
+        self.req_come = 0   # Количество пришедших в систему заявок
+        self.req_serv = 0   # Количество обслуженных заявок
+
     def serve_request(self, last_served_time):
         # Время выхода предыдущей обрабатываемой заявки из системы
         ls_time = last_served_time if last_served_time != 0 else self.income_times[0]
         self.in_sys.append(query_servicing(self.income_times[0], ls_time, self.service_times.pop(0)))
         # return number of served queries, last_served_time
+
+        # todo rewrite code without pop
         return len(self.in_sys), self.in_sys[-1] + self.income_times.pop(0)

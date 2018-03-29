@@ -36,14 +36,14 @@ stream_num = 2
 avg_times = [0.5, 0.5]  # Среднее время для каждой категории заявок
 
 # Lambda
-lambdas = [1, 2]
+lambdas = [2, 3]
 print('in times are ' + str(1/lambdas[0]) + ' and ' + str(1/lambdas[1]))
 
 mu = 5
 t_proc = 1/mu  # Request processing time
 print('Начальные значения mu = ' + str(mu) + " (t_proc = " + str(t_proc) + ")")
 
-query_num = 1000000
+query_num = 10000
 
 # p_val = np.concatenate([np.arange(0.1, 0.4, 0.1), np.arange(0.4, 0.61, 0.001), np.arange(0.7, 1, 0.1)])
 p_val = np.arange(0, 1.1, 0.1)    # Распределение вероятностей для соблюдения среднего времени выполнения заявок
