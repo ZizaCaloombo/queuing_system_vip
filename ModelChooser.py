@@ -43,7 +43,7 @@ mu = 5
 t_proc = 1/mu  # Request processing time
 print('Начальные значения mu = ' + str(mu) + " (t_proc = " + str(t_proc) + ")")
 
-query_num = 10000
+query_num = 1000000
 
 # p_val = np.concatenate([np.arange(0.1, 0.4, 0.1), np.arange(0.4, 0.61, 0.001), np.arange(0.7, 1, 0.1)])
 p_val = np.arange(0, 1.1, 0.1)    # Распределение вероятностей для соблюдения среднего времени выполнения заявок
