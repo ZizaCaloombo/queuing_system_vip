@@ -34,7 +34,7 @@ class StreamExecuter:
             self.sm = [0 for _ in range(streams_num)]  # Лист с экземплярами моделируемых потоков.
             self.query_num = query_num
             self.served_num = [0 for _ in range(self.streams)]  # Индекс заявок
-            self.min_num_queries = 10000  # Минимально необходимое число заявок для обработки
+            self.min_num_queries = round(query_num/10)  # Минимально необходимое число заявок для обработки
             self.lambdas = lambdas
             self.service_times = np.random.exponential(self.t_proc, self.query_num).tolist()
             for i in range(streams_num):
@@ -56,12 +56,17 @@ class StreamExecuter:
 
         # print(exec_order)
         # while sum(self.served_num) < self.query_num:  # Пока не обработано нужное количество заявок
-        by_order = 0
         while min(self.served_num) < self.min_num_queries:  # Через ИЛИ?
-            # Вот тут менять при количестве потоков > 2
-            # В переменных номера входных потоков
-            ord_str = exec_order[by_order] - 1     # Заявка по порядку
-            n_ord_str = int((1 + ord_str) % 2)          # Заявка не по порядку
+            try:
+                # Вот тут менять при количестве потоков > 2
+                # В переменных номера входных потоков
+                ord_str = exec_order[sum(self.served_num)] - 1     # Заявка по порядку
+                n_ord_str = int((1 + ord_str) % 2)          # Заявка не по порядку
+            except IndexError as ie:
+                print("Обработано ", self.served_num[0], " заявок из первого буфера и ", self.served_num[1],
+                      "из второго.\nПроверьте значения Lambda и Mu. Сумма Lambda < mu для успешной\n"
+                      "обработки заявок при граничных вероятностях (p=0,1).")
+                raise ie
             # Если ОУ не занято и заявка не по порядку пришла раньше порядковой - запуск непорядковой в обработку.
             if self.streams > 1 and \
                     last_served_time < self.sm[ord_str].income_times[self.served_num[ord_str]]:
@@ -73,12 +78,10 @@ class StreamExecuter:
                 else:
                     self.served_num[ord_str] += 1
                     last_served_time = self.sm[ord_str].serve_request(last_served_time)
-                    by_order += 1
                 # print(self.served_num)
             else:
                 self.served_num[ord_str] += 1
                 last_served_time = self.sm[ord_str].serve_request(last_served_time)
-                by_order += 1
             # print(self.served_num)
 
         # for i in range(len(exec_order)):  # Для каждой заявки в списке для обработки
