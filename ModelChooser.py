@@ -22,6 +22,14 @@ def print_results(avg_times, rez_time, srv_mu):
     plt.savefig('results.pdf')
 
 
+class ModelChooser:
+    def __init__(self, stream_num, avg_times, lambdas, mu, query_num, test_num):
+        pass
+
+    def choose_model(self, stream_num, avg_times, lambdas, mu, query_num, test_num, comp_accur, img_tracing=True):
+
+
+
 stream_num = 2              # Количество потоков
 
 # Avg_time
@@ -137,3 +145,18 @@ print_results(avg_times, rez_time, srv_mu)
 print('rez')
 print(np.mean(avg_est[:, opt_val]))
 print(1/(srv_mu[-1]-sum(lambdas)))
+
+
+if __name__ == '__main__':
+    stream_num = 2      # Количество потоков
+    avg_times = [2, 1]  # Среднее время для каждой категории заявок
+    lambdas = [0.05, 0.03]  # Интенсивности поступления заявок в каждый буфер
+    mu = 0.1
+    query_num = 100000  # Общее количество заявок, которые поступят в каждый буфер. т.е. q_n в 1 и во 2.
+    comp_accur = 1e-1
+
+    img_tracing = True
+
+    mc = ModelChooser.choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_accur,
+                                   img_tracing=True)
+
