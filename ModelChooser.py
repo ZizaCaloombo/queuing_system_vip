@@ -43,7 +43,7 @@ def choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_a
     rez_time = []
     srv_mu = []
     algo_revers = False
-    cur_accur = 1e2
+    cur_accur = 1e0
     while True:
         rand_arr = []
         for i in range(test_num):
@@ -98,7 +98,7 @@ def choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_a
                     break
                 else:
                     t_proc = 1 / (1 / t_proc + cur_accur)  # Возвращаем предыдущее значение
-                    cur_accur /= 1e1  # Увеличиваем точность
+                    cur_accur /= 10  # Увеличиваем точность
                     t_proc = 1 / (1 / t_proc - cur_accur)  # Приближаем время обслуживания к необходимым параметрам
         else:
             opt_val = 0
