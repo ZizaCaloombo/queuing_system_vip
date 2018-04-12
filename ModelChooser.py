@@ -22,10 +22,10 @@ def print_results(avg_times, rez_time, srv_mu):
     plt.savefig('results.pdf')
 
 
-def choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_accur, p_val):
+def choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_accur, p_val, get_result=False):
     t_proc = 1 / mu  # Request processing time
     print('Начальные значения mu = ' + str(mu) + " (t_proc = " + str(t_proc) + ")")
-
+    print('tau = ' + str(avg_times))
     print('Среднее время между поступлением заявок в 1 буфер = ' + str(1 / lambdas[0]) + ' и во 2 = ' + str(
         1 / lambdas[1]))
     if sum(lambdas) > mu:
@@ -43,7 +43,7 @@ def choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_a
     rez_time = []
     srv_mu = []
     algo_revers = False
-    cur_accur = 1e0
+    cur_accur = 1e2
     while True:
         rand_arr = []
         for i in range(test_num):
@@ -88,11 +88,17 @@ def choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_a
                 temp_est = avg_est
                 temp_t_p = t_proc
                 t_proc = 1 / (1 / t_proc - cur_accur)
+                while t_proc <= 0:
+                    t_proc = 1 / (1 / t_proc + cur_accur)
+                    cur_accur /= 10
+                    t_proc = 1 / (1 / t_proc - cur_accur)
+                if get_result:
+                    print('mu='+str(1/t_proc))
             else:
                 avg_est = temp_est  # Возвращаем предыдущий набор данных с подходящим под условия значением
                 t_proc = temp_t_p
 
-                if cur_accur == comp_accur:
+                if cur_accur <= comp_accur:
                     rez_time.append(avg_est)
                     srv_mu.append(round(1 / t_proc, -int(math.log10(comp_accur))))
                     break
@@ -105,9 +111,10 @@ def choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_a
             for i in range(len(p_val)):
                 if avg_est[0, i] < avg_times[0] and avg_est[1, i] < avg_times[1]:
                     opt_val = i
-                    # print('\navg_rez')
-                    # print(avg_est[:, i])
-                    # print('p=' + str(p_val[i]))
+                    if get_result:
+                        print('\navg_rez')
+                        print(avg_est[:, i])
+                        print('p=' + str(p_val[i]))
                     print('===Reverse time===')
                     algo_revers = True
                     temp_est = avg_est
@@ -122,7 +129,8 @@ def choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_a
                 if t_proc < 1e-5:
                     print('Заданные требования достижимы лишь при малых значениях alpha')
                     break
-    # print_results(avg_times, rez_time, srv_mu)
+    if get_result:
+        print_results(avg_times, rez_time, srv_mu)
     # avg_times - tao1,2 (needed times)
     # rez_time
 
@@ -137,17 +145,17 @@ if __name__ == '__main__':
     stream_num = 2      # Количество потоков
     # Время в 2 раза больше
     # Интенсивность в 2 раза меньше
-    avg_times = [1, 0.5]  # Среднее время для каждой категории заявок
-    mu = 0.2
+    avg_times = [4, 7.5]  # Среднее время для каждой категории заявок
+    mu = 0.7
     # avg_times = [2, 1]  # Среднее время для каждой категории заявок
     # mu = 0.1
-    lambdas = [0.05, 0.03]  # Интенсивности поступления заявок в каждый буфер
-    query_num = 10000  # Общее количество заявок, которые поступят в каждый буфер. т.е. q_n в 1 и во 2.
-    comp_accur = 1e-1  # Точность вычислений при обратном проходе (кол-во знаков после запятой)
+    lambdas = [0.15, 0.35]  # Интенсивности поступления заявок в каждый буфер
+    query_num = 50000  # Общее количество заявок, которые поступят в каждый буфер. т.е. q_n в 1 и во 2.
+    comp_accur = 1e-3  # Точность вычислений при обратном проходе (кол-во знаков после запятой)
     test_num = 10  # Количество тестов с разными рандомами (сглаживает графики?)
     prob = np.arange(0, 1.1, 0.1)  # Распределение вероятностей для соблюдения среднего времени выполнения заявок
 
-    x, y = choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_accur, prob)
+    x, y = choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_accur, prob, get_result=True)
 
     x1 = x[-1]
     y1 = y[-1]
