@@ -5,17 +5,37 @@ import math
 import StreamExecutor as SExec
 
 
-def print_results(avg_times, rez_time, srv_mu):
+def print_results(avg_times, rez_time, srv_mu, extra=False):
     import matplotlib.pyplot as plt
+    import scipy as sp
+
+    d = 1   # степень полинома
+    x = rez_time[-1][0, :]
+    y = rez_time[-1][1, :]
+    fp, residuals, rank, sv, rcond = sp.polyfit(x, y, d, full=True)  # Модель
+    f = sp.poly1d(fp)  # аппроксимирующая функция
+    print('Коэффициент -- a %s  ' % round(fp[0], 4))
+    print('Коэффициент-- b %s  ' % round(fp[1], 4))
+    y1 = [fp[0] * x[i] + fp[1] for i in range(0, len(x))]  # значения функции a*x+b
+    so = round(sum([abs(y[i] - y1[i]) for i in range(0, len(x))]) / (len(x) * sum(y)) * 100, 4)  # средняя ошибка
+    print('Average quadratic deviation ' + str(so))
+    fx = sp.linspace(x[0], x[-1] + 1, len(x))  # можно установить вместо len(x) большее число для интерполяции
 
     plt.figure(1)
     plt.xlabel('t_vip')
     plt.ylabel('t_oth')
     plt.plot(avg_times[0], avg_times[1], 'rx')
+    if extra:
+        plt.plot(1/(srv_mu[-1] - 1/avg_times[0]), 1/(srv_mu[-1] - 1/(avg_times[0]+avg_times[1])), 'gx')
+        plt.plot(1/(srv_mu[-1] - 1/(avg_times[0]+avg_times[1])), 1/(srv_mu[-1] - 1/avg_times[1]), 'bx')
     i = 0
     for times in rez_time:
         plt.plot(times[0, :], times[1, :], label="Mu = " + "{0:.2f}".format(srv_mu[i]))
         i += 1
+    plt.plot(x, f(x), 'g', linewidth=2)
+    plt.plot([x[0], x[0]+3], [f(x[0]), f(x[0])], 'g')
+    plt.plot([x[-1], x[-1]], [f(x[-1]), f(x[-1])+3], 'g')
+
     plt.legend(loc='best')
     plt.grid()
     # plt.show()
@@ -93,7 +113,7 @@ def choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_a
                     cur_accur /= 10
                     t_proc = 1 / (1 / t_proc - cur_accur)
                 if get_result:
-                    print('mu='+str(1/t_proc))
+                    print('mu='+str(round(1/t_proc, -int(np.log10(comp_accur)))))
             else:
                 avg_est = temp_est  # Возвращаем предыдущий набор данных с подходящим под условия значением
                 t_proc = temp_t_p
@@ -103,9 +123,12 @@ def choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_a
                     srv_mu.append(round(1 / t_proc, -int(math.log10(comp_accur))))
                     break
                 else:
-                    t_proc = 1 / (1 / t_proc + cur_accur)  # Возвращаем предыдущее значение
                     cur_accur /= 10  # Увеличиваем точность
                     t_proc = 1 / (1 / t_proc - cur_accur)  # Приближаем время обслуживания к необходимым параметрам
+                    while t_proc <= 0:
+                        t_proc = 1 / (1 / t_proc + cur_accur)
+                        cur_accur /= 10
+                        t_proc = 1 / (1 / t_proc - cur_accur)
         else:
             opt_val = 0
             for i in range(len(p_val)):
@@ -130,7 +153,7 @@ def choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_a
                     print('Заданные требования достижимы лишь при малых значениях alpha')
                     break
     if get_result:
-        print_results(avg_times, rez_time, srv_mu)
+        print_results(avg_times, rez_time, srv_mu, extra=False)
     # avg_times - tao1,2 (needed times)
     # rez_time
 
@@ -145,13 +168,13 @@ if __name__ == '__main__':
     stream_num = 2      # Количество потоков
     # Время в 2 раза больше
     # Интенсивность в 2 раза меньше
-    avg_times = [4, 7.5]  # Среднее время для каждой категории заявок
-    mu = 0.7
+    avg_times = [3, 3]  # Среднее время для каждой категории заявок
+    mu = 0.8
     # avg_times = [2, 1]  # Среднее время для каждой категории заявок
     # mu = 0.1
-    lambdas = [0.15, 0.35]  # Интенсивности поступления заявок в каждый буфер
+    lambdas = [0.35, 0.15]  # Интенсивности поступления заявок в каждый буфер
     query_num = 50000  # Общее количество заявок, которые поступят в каждый буфер. т.е. q_n в 1 и во 2.
-    comp_accur = 1e-3  # Точность вычислений при обратном проходе (кол-во знаков после запятой)
+    comp_accur = 1e-2  # Точность вычислений при обратном проходе (кол-во знаков после запятой)
     test_num = 10  # Количество тестов с разными рандомами (сглаживает графики?)
     prob = np.arange(0, 1.1, 0.1)  # Распределение вероятностей для соблюдения среднего времени выполнения заявок
 

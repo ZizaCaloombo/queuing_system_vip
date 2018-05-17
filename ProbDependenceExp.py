@@ -3,11 +3,14 @@ import matplotlib.pyplot as plt
 
 import ModelChooser as MCh
 
+'''
+Строит график зависимости оптимальной вероятности от отношения tau1/tau2
+'''
 
 stream_num = 2      # Количество потоков
 # Время в 2 раза больше
 # Интенсивность в 2 раза меньше
-avg_times = [5, 5]  # Среднее время для каждой категории заявок
+avg_times = [4, 5]  # Среднее время для каждой категории заявок
 # mu = 0.2
 # avg_times = [2, 1]  # Среднее время для каждой категории заявок
 # mu = 0.1
@@ -36,7 +39,6 @@ for f in range(multi_num):
 
         avg_times = tau[i]
 
-
         x, y = MCh.choose_model(stream_num, avg_times, lambdas, mu, query_num, test_num, comp_accur, prob)
 
         x1 = x[-1]
@@ -44,7 +46,7 @@ for f in range(multi_num):
         val_num = len(x1[-1])
         opt = [0] * val_num
         for k in range(val_num):
-            opt[i] = abs(x1[0][k] - avg_times[0]) + abs(x1[1][k] - avg_times[1])
+            opt[k] = abs(x1[0][k] - avg_times[0]) + abs(x1[1][k] - avg_times[1])
         full_rez[f][i] = prob[np.argmin(opt)]
         print('Выполнено:', str(i+1), '/', str(len(tau)))
     label_data.append([mu, [tau[2][0], tau[2][1]]])
