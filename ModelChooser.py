@@ -22,17 +22,17 @@ def print_results(avg_times, rez_time, srv_mu, extra=False):
     fx = sp.linspace(x[0], x[-1] + 1, len(x))  # можно установить вместо len(x) большее число для интерполяции
 
     plt.figure(1)
-    plt.xlabel('t_vip')
-    plt.ylabel('t_oth')
-    plt.plot(avg_times[0], avg_times[1], 'rx')
+    plt.xlabel(r'$t_1$')
+    plt.ylabel(r'$t_2$')
+    plt.plot(avg_times[0], avg_times[1], 'rx', label=r"$(\tau_1, \tau_2)$")
     if extra:
         plt.plot(1/(srv_mu[-1] - 1/avg_times[0]), 1/(srv_mu[-1] - 1/(avg_times[0]+avg_times[1])), 'gx')
         plt.plot(1/(srv_mu[-1] - 1/(avg_times[0]+avg_times[1])), 1/(srv_mu[-1] - 1/avg_times[1]), 'bx')
     i = 0
     for times in rez_time:
-        plt.plot(times[0, :], times[1, :], label="Mu = " + "{0:.2f}".format(srv_mu[i]))
+        plt.plot(times[0, :], times[1, :], label=r"$\mu = $" + "{0:.2f}".format(srv_mu[i]))
         i += 1
-    plt.plot(x, f(x), 'g', linewidth=2)
+    #plt.plot(x, f(x), 'g', linewidth=2)
     plt.plot([x[0], x[0]+3], [f(x[0]), f(x[0])], 'g')
     plt.plot([x[-1], x[-1]], [f(x[-1]), f(x[-1])+3], 'g')
 

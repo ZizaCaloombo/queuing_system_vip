@@ -60,12 +60,12 @@ for val in tau:
 x = [1, 2, 3, 4, 5]
 
 plt.figure(1)
-plt.xlabel('tau1/tau2')
-plt.ylabel('p_opt')
+plt.xlabel(r'$\tau_1/\tau_2$')
+plt.ylabel(r'$P_{опт}$')
 plt.xticks(x, ticks_data)
+markers = ['x', 'o', '+']
 for i in range(multi_num):
-    plt.plot(x, full_rez[i], 'x', label="Mu=" + "{0:.2f}".format(label_data[i][0]) + ' ' + "tau=" +
-                                        str(label_data[i][1]))
+    plt.plot(x, full_rez[i], markers[i], label="Mu=" + "{0:.2f}".format(label_data[i][0]), markerfacecolor='white')
 plt.legend(loc='best')
 plt.grid()
 # plt.show()

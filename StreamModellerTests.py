@@ -13,7 +13,6 @@ class SMTests(unittest.TestCase):
         self.assertEqual(SMod.query_servicing(1, 2, 2), 3)
 
     # Тесты на создание и обработку заявки
-    # Нерепрезентативный тест
     def request_serving(self):
         t_proc = 2
         times = [1, 3, 4, 5, 10]
